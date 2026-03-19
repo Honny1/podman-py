@@ -3,6 +3,7 @@
 import unittest
 from unittest.mock import patch
 
+import pytest
 import requests_mock
 
 from podman import PodmanClient, tests
@@ -127,6 +128,69 @@ class QuadletTestCase(unittest.TestCase):
         self.assertIn("force=true", url_lower)
         self.assertIn("ignore=true", url_lower)
         self.assertIn("reload-systemd=false", url_lower)
+
+
+@pytest.mark.parametrize(
+    "bad_type",
+    [
+        pytest.param(None, id="none"),
+        pytest.param(42, id="int"),
+        pytest.param({}, id="dict"),
+        pytest.param(b"raw", id="bare-bytes"),
+        pytest.param((1, "b"), id="tuple-int-filename"),
+    ],
+)
+def test_validate_files_rejects_bad_type(bad_type):
+    with pytest.raises(TypeError):
+        QuadletsManager._validate_files_type(bad_type)
+
+
+@pytest.mark.parametrize(
+    "bad_value",
+    [
+        pytest.param([], id="empty-list"),
+        pytest.param((), id="empty-tuple"),
+        pytest.param("", id="empty-string"),
+        pytest.param(("a",), id="tuple-1-element"),
+        pytest.param(("",), id="tuple-1-empty-string"),
+        pytest.param(("a", "b", "c"), id="tuple-3-elements"),
+        pytest.param((("a", "b"),), id="tuple-wrapping-tuple"),
+    ],
+)
+def test_validate_files_rejects_bad_value(bad_value):
+    with pytest.raises(ValueError):
+        QuadletsManager._validate_files_type(bad_value)
+
+
+@pytest.mark.parametrize(
+    "bad_item_type",
+    [
+        pytest.param([None], id="list-of-none"),
+        pytest.param([42], id="list-of-int"),
+        pytest.param([("a", "b"), None], id="list-valid-then-none"),
+    ],
+)
+def test_validate_files_rejects_bad_item_type(bad_item_type):
+    with pytest.raises(TypeError):
+        QuadletsManager._validate_files_type(bad_item_type)
+
+
+@pytest.mark.parametrize(
+    "bad_item_value",
+    [
+        pytest.param([""], id="list-of-empty-string"),
+        pytest.param([()], id="list-of-empty-tuple"),
+        pytest.param([("a",)], id="list-of-1-tuple"),
+        pytest.param([("a", "b", "c")], id="list-of-3-tuple"),
+        pytest.param(
+            [("a", "b"), ("a", "b", "c")],
+            id="list-valid-then-3-tuple",
+        ),
+    ],
+)
+def test_validate_files_rejects_bad_item_value(bad_item_value):
+    with pytest.raises(ValueError):
+        QuadletsManager._validate_files_type(bad_item_value)
 
 
 if __name__ == '__main__':
