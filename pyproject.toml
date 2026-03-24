@@ -4,9 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "podman"
-# TODO: remove the line version = ... on podman-py > 5.4.0 releases
-# dynamic = ["version"]
-version = "5.7.0"
+dynamic = ["version"]
 description = "Bindings for Podman RESTful API"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -75,9 +73,8 @@ testpaths = [
 where = ["."]
 include = ["podman*"]
 
-# TODO: remove the line version = ... on podman-py > 5.4.0 releases
-# [tool.setuptools.dynamic]
-# version = {attr = "podman.version.__version__"}
+[tool.setuptools.dynamic]
+version = {attr = "podman.version.__version__"}
 
 [tool.ruff]
 line-length = 100
