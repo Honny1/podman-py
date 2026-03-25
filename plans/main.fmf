@@ -2,8 +2,6 @@ summary: Run Python Podman Tests
 
 discover:
     how: fmf
-    url: https://github.com/containers/podman-py
-    ref: "v5.7.0"
 execute:
     how: tmt
 prepare:

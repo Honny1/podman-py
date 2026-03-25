@@ -24,6 +24,3 @@ echo "  - Updated podman/version.py"
 
 sed -i "s|/v[0-9.]*[0-9]/libpod|/v$VERSION/libpod|" podman/tests/__init__.py
 echo "  - Updated podman/tests/__init__.py"
-
-sed -i "s/ref: \"v[0-9.]*[0-9]\"/ref: \"v$VERSION\"/" plans/main.fmf
-echo "  - Updated plans/main.fmf"
