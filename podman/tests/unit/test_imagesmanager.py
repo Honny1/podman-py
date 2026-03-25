@@ -1,3 +1,4 @@
+import io
 import types
 import unittest
 from unittest.mock import patch
@@ -390,8 +391,7 @@ class ImagesManagerTestCase(unittest.TestCase):
         with self.assertRaises(PodmanError):
             self.client.images.load(data=b'data', file_path=b'file_path')
 
-        # Patch Path.read_bytes to mock the file reading behavior
-        with patch("pathlib.Path.read_bytes", return_value=b"mock tarball data"):
+        with patch("pathlib.Path.open", return_value=io.BytesIO(b"mock tarball data")):
             mock.post(
                 tests.LIBPOD_URL + "/images/load",
                 json={"Names": ["quay.io/fedora:latest"]},

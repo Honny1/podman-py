@@ -146,25 +146,17 @@ class ImagesManager(BuildMixin, Manager):
                 "Only one parameter should be set from 'data' and 'file_path' parameters."
             )
 
-        post_data = data
-        if file_path:
-            # Convert to Path if file_path is a string
-            file_path_object = Path(file_path)
-            post_data = file_path_object.read_bytes()  # Read the tarball file as bytes
-
-        # Make the client request before entering the generator
-        response = self.client.post(
-            "/images/load", data=post_data, headers={"Content-type": "application/x-tar"}
-        )
-        response.raise_for_status()  # Catch any errors before proceeding
-
         def _generator(body: dict) -> Generator[Image, None, None]:
             # Iterate and yield images from response body
             for item in body["Names"]:
                 yield self.get(item)
 
-        # Pass the response body to the generator
-        return _generator(response.json())
+        with Path(file_path).open("rb") if file_path else io.BytesIO(data) as stream:
+            response = self.client.post(
+                "/images/load", data=stream, headers={"Content-type": "application/x-tar"}
+            )
+            response.raise_for_status()
+            return _generator(response.json())
 
     def prune(
         self,
