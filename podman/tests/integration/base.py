@@ -56,7 +56,15 @@ class IntegrationTest(fixtures.TestWithFixtures):
 
         self.log_level = os.environ.get("PODMAN_LOG_LEVEL", "INFO")
 
-        self.test_dir = self.useFixture(fixtures.TempDir()).path
+        # sshd uses PrivateTmp on Fedora; stream-local forwards cannot reach sockets under /tmp.
+        run_dir = f"/run/podman-py-test-{uuid.uuid4().hex}"
+        try:
+            os.makedirs(run_dir, mode=0o700)
+            self.test_dir = run_dir
+            self.addCleanup(shutil.rmtree, run_dir, ignore_errors=True)
+        except OSError:
+            self.test_dir = self.useFixture(fixtures.TempDir()).path
+
         self.socket_file = os.path.join(self.test_dir, uuid.uuid4().hex)
         self.socket_uri = f'unix://{self.socket_file}'
         self.service_launcher = utils.PodmanLauncher(
