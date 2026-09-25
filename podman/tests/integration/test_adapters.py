@@ -1,4 +1,5 @@
 import getpass
+import os
 import unittest
 
 import time
@@ -11,14 +12,23 @@ class AdapterIntegrationTest(base.IntegrationTest):
     def setUp(self):
         super().setUp()
 
+    def _ssh_client_kwargs(self) -> dict:
+        identity = os.environ.get("PODMAN_SSH_IDENTITY")
+        if identity and os.path.isfile(identity):
+            return {"identity": identity}
+        return {}
+
     def test_ssh_ping(self):
+        ssh_kwargs = self._ssh_client_kwargs()
         with PodmanClient(
-            base_url=f"http+ssh://{getpass.getuser()}@localhost:22{self.socket_file}"
+            base_url=f"http+ssh://{getpass.getuser()}@localhost:22{self.socket_file}",
+            **ssh_kwargs,
         ) as client:
             self.assertTrue(client.ping())
 
         with PodmanClient(
-            base_url=f"ssh://{getpass.getuser()}@localhost:22{self.socket_file}"
+            base_url=f"ssh://{getpass.getuser()}@localhost:22{self.socket_file}",
+            **ssh_kwargs,
         ) as client:
             self.assertTrue(client.ping())
 
